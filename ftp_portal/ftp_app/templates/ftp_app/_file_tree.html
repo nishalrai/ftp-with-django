@@ -1,0 +1,25 @@
+{% load filename_filters %}  <!-- This must come before any filter usage -->
+<ul class="space-y-2">
+    {% for item in items %}
+        <li class="p-2">
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" name="selected_files" value="{{ item.name|escapejs }}" class="file-checkbox" onchange="toggleActionButtons()">
+                {% if item.is_dir %}
+                    <!-- Folder name: clickable to toggle showing children -->
+                    <span class="text-blue-600 font-semibold cursor-pointer" onclick="toggleFolder(this)">{{ item.name|basename }}</span>
+                    
+                    {% if item.children %}
+                        <div class="ml-6 hidden folder-contents">
+                            <!-- Recursive call: render children -->
+                            {% include 'ftp_app/_file_tree.html' with items=item.children %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- File name and size -->
+                    <span class="text-gray-700">{{ item.name|basename }}</span>
+                    <span class="text-gray-500 text-sm">({{ item.size|filesizeformat }})</span>
+                {% endif %}
+            </div>
+        </li>
+    {% endfor %}
+</ul>

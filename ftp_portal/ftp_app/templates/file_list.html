@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load filename_filters %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="p-2 text-sm {% if 'error' in message.tags %}text-red-500 bg-red-100{% else %}text-green-500 bg-green-100{% endif %} rounded">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Upload Area -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Upload Files or Folders</h3>
+        <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex justify-center gap-4">
+                <button type="button" onclick="document.getElementById('file-upload').click()" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                    Select Files
+                </button>
+                <button type="button" onclick="document.getElementById('folder-upload').click()" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
+                    Select Folder
+                </button>
+            </div>
+
+            <input id="file-upload" type="file" name="uploads" multiple class="hidden" onchange="updateFilePaths(this, 'file-list')">
+            <input id="folder-upload" type="file" name="uploads" webkitdirectory directory multiple class="hidden" onchange="updateFilePaths(this, 'file-list')">
+
+            <div id="dropZone" class="border-2 border-dashed border-gray-300 p-6 text-center rounded-lg hover:bg-gray-50 cursor-pointer">
+                <p class="text-gray-600">Or drag and drop files or folders here</p>
+            </div>
+
+            <div id="file-list" class="mt-2 text-sm text-gray-600"></div>
+            <div id="error-msg" class="text-red-500 text-sm hidden">Please select at least one file or folder before uploading.</div>
+
+            <button type="submit" name="upload" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                Upload
+            </button>
+        </form>
+    </div>
+
+    <!-- File List -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Files and Folders</h3>
+        <form id="actionForm" method="post" class="space-y-4">
+            {% csrf_token %}
+            {% if files %}
+                <div class="flex justify-end mb-4 space-x-2">
+                    <button type="submit" name="delete" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:bg-gray-400" id="deleteBtn" disabled onclick="return confirm('Are you sure you want to delete the selected items?');">
+                        Delete
+                    </button>
+                    <button type="button" class="bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 disabled:bg-gray-400" id="renameBtn" disabled onclick="showRenameForm()">
+                        Rename
+                    </button>
+                    <button type="submit" name="download" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400" id="downloadBtn" disabled>
+                        Download
+                    </button>
+                    <button type="button" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-400" id="shareBtn" disabled onclick="showShareForm()">
+                        Share
+                    </button>
+                </div>
+
+                <!--  Recursive folder & file rendering -->
+                {% include 'ftp_app/_file_tree.html' with items=files %}
+
+            {% else %}
+                <p class="text-gray-600">No files or folders found.</p>
+            {% endif %}
+
+            <!-- Rename Form -->
+            <div id="renameForm" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Rename Selected Items</h3>
+                    <div id="renameInputs" class="space-y-2"></div>
+                    <div class="flex space-x-2 mt-4">
+                        <button type="submit" name="rename" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                            Rename
+                        </button>
+                        <button type="button" onclick="hideRenameForm()" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Form -->
+            <div id="shareForm" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Share Selected Files</h3>
+                    <div class="space-y-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="requires_auth" class="mr-2">
+                            Require authentication
+                        </label>
+                        <div>
+                            <label class="block text-sm text-gray-600">Link expiration (days)</label>
+                            <input type="number" name="expiry_days" value="7" min="1" class="w-full p-2 border rounded-lg">
+                        </div>
+                        {% if share_links %}
+                            <div id="generatedLinksSection" class="mt-4">
+                                <label for="generated-link" class="block text-sm font-medium text-gray-700 mb-2">Generated Links</label>
+                                <ul class="space-y-3">
+                                    {% for link in share_links %}
+                                        <li class="flex items-center space-x-2">
+                                            <input id="generated-link-{{ forloop.counter }}" type="text" value="{{ link }}" readonly 
+                                                class="flex-grow p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-800" />
+                                            <button type="button" onclick="copyLink(this)"
+                                                    class="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                                Copy
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-2">Links will expire automatically after the specified number of days.</p>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                    <div class="flex space-x-2 mt-4">
+                        <button type="submit" name="share" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                            Generate Links
+                        </button>
+                        <button type="button" onclick="hideShareForm()" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'ftp_app/js/file-manager.js' %}"></script>
+{% endblock %}

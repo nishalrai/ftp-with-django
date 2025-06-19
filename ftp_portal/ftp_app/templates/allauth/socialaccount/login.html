@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Social Login{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold text-center text-blue-600 mb-6">Connect with Google</h2>
+        <p class="text-center text-gray-600 mb-6">You're about to sign in with your Google account.</p>
+        <form method="post" action="{% url 'social:complete' 'google-oauth2' %}">
+            {% csrf_token %}
+            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-200">
+                Continue with Google
+            </button>
+        </form>
+        <p class="mt-4 text-center text-sm text-gray-600">
+            Prefer local login? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Back to Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

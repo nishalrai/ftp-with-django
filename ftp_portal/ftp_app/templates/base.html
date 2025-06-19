@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nitratic FTP Server - {% block title %}{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'dashboard' %}" class="text-white text-lg font-bold flex items-center space-x-3">
+                <!-- Static logo image -->
+                <img src="{% static 'ftp_app/images/logo.webp' %}" alt="FTP Server Logo" class="h-8 w-auto" />
+                <span>FTP Server</span>
+            </a>
+            {% if user.is_authenticated %}
+                <div class="flex items-center space-x-6">
+                    <span class="text-white">Welcome, {{ user.username }}</span>
+                    <a href="{% url 'file_list' %}" class="text-white hover:underline {% if request.path == '/files/' %}underline font-bold{% endif %}">My Files</a>
+                    <a href="{% url 'dashboard' %}" class="text-white hover:underline {% if request.path == '/dashboard/' %}underline font-bold{% endif %}">Dashboard</a>
+                    <a href="{% url 'logout' %}" class="text-white hover:underline">Logout</a>
+                </div>
+            {% else %}
+                <div>
+                    <a href="{% url 'login' %}" class="text-white mr-4 hover:underline">Login</a>
+                    <a href="{% url 'register' %}" class="text-white hover:underline">Register</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-8">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

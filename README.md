@@ -133,16 +133,16 @@ ftp_portal/
 
 ### 1. Clone the Repository
 
-``
+```
 git clone https://github.com/your-username/ftp-web-ui.git
 cd ftp-web-ui
-``
+```
 
 ### Create and Activate Virtual Environment
-``
+```
 python3 -m venv venv
 source venv/bin/activate
-``
+```
 
 ### Install Dependencies
 `pip install -r requirements.txt`
@@ -150,19 +150,12 @@ source venv/bin/activate
 ### Environment Variables
 Create a `.env` file in the root directory and add your Google OAuth credentials:
 
-``
-
-#.env
-
+```
 SECRET_KEY=your-django-secret-key
-
-#Google OAuth Credentials
-
 GOOGLE_CLIENT_ID=your-google-client-id
-
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
 
-``
 
 ### Run Migration
 `python3 manage.py migrate`
@@ -191,6 +184,7 @@ Visit: http://127.0.0.1:8000/ or http://localhost:8000/
 - 📊 Performance monitoring & optimization
 - 🔒 HTTPS and secure session management
 - 📄 Audit logs for user activity
+- ☁️ AWS S3 Storage Support
 
 <br>
 

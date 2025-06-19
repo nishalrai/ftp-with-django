@@ -134,8 +134,8 @@ ftp_portal/
 ### 1. Clone the Repository
 
 ```
-git clone https://github.com/your-username/ftp-web-ui.git
-cd ftp-web-ui
+git clone https://github.com/nishalrai/ftp-with-django.git
+cd ftp-with-django
 ```
 
 ### Create and Activate Virtual Environment
